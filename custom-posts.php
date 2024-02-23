@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Custom Posts
  * Description: This is a plugin to add and manage custom posts
@@ -8,18 +9,37 @@
  * Plugin URI: http://google.com
  */
 
-class Custom_Posts {
-    function __construct() {
+class Custom_Posts
+{
+    public function __construct()
+    {
         add_action('init', [$this, 'init']);
+        register_activation_hook(__FILE__, [$this, 'activate']);
     }
 
-    function init() {
+    function activate(){
+      flush_rewrite_rules();
+    }
+
+    public function init()
+    {
         $this->register_book_cpt();
+        $this->register_chapter_cpt();
         $this->register_genre_taxonomy();
-        add_action('admin_menu', [$this, 'add_chapter_menu_inside_books']);
+        $this->rewrite_chapter_url();
+        // add_action('admin_menu', [$this, 'add_chapter_menu_inside_books']);
     }
 
-    function add_chapter_menu_inside_books()
+    public function rewrite_chapter_url()
+    {
+        add_rewrite_rule(
+            '^book/([^/]*)/chapter/([^/]*)/?',
+            'index.php?post_type=chapter&name=$matches[2]',
+            'top'
+        );
+    }
+
+    public function add_chapter_menu_inside_books()
     {
         add_submenu_page(
             'edit.php?post_type=book',
@@ -32,7 +52,8 @@ class Custom_Posts {
         remove_menu_page('edit.php?post_type=chapter');
     }
 
-    function register_genre_taxonomy() {
+    public function register_genre_taxonomy()
+    {
         register_taxonomy('genre', 'book', [
             'label' => __('Genre'),
             'hierarchical' => true,
@@ -40,7 +61,8 @@ class Custom_Posts {
         ]);
     }
 
-    function register_book_cpt() {
+    public function register_book_cpt()
+    {
 
         /**
          * Post Type: Books.
@@ -83,14 +105,24 @@ class Custom_Posts {
         register_post_type('chapter', [
             'labels' => [
                 'name' => __('Chapters'),
-                'singular_name' => __('Chapter')
+                'singular_name' => __('Chapter'),
             ],
             'public' => true,
             'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
         ]);
     }
 
-
+    public function register_chapter_cpt()
+    {
+        register_post_type('chapter', [
+            'labels' => [
+                'name' => __('Chapters'),
+                'singular_name' => __('Chapter'),
+            ],
+            'public' => true,
+            'supports' => ['title', 'editor', 'thumbnail', 'excerpt'],
+        ]);
+    }
 
 }
 
